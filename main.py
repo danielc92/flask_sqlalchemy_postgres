@@ -19,20 +19,32 @@ CREATE TABLE complaints
 	complaint_content VARCHAR(255),
 	complaint_emp_id INTEGER REFERENCES employees (emp_id)
 )
+'''
 
 
 '''
-
+Imports
+'''
 from flask import Flask, render_template, redirect, url_for, request, session
 from flask_sqlalchemy import SQLAlchemy
 import pandas
 
-
+'''
+Initiate flask app 
+'''
 app = Flask(__name__)
+
+
+'''
+Initiate database
+URI takes format <driver>://<username><password>@<server><port>/<database name>
+'''
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:12345@localhost/sqlalchemy'
 db = SQLAlchemy(app)
 
-
+'''
+Create mapper object to table in postgres database
+'''
 class Employee(db.Model):
 
 	__tablename__ = 'employees'
@@ -45,7 +57,9 @@ class Employee(db.Model):
 		return 'empid:{},emp_name:{},emp_age:{}'\
 		.format(self.emp_id, self.emp_name, self.emp_age)
 
+
 '''
+This route adds an new employee using url arguments.
 Usage Example:
 http://localhost:4999/add-employee?emp_name=daniel%20corcoran&emp_age=54
 '''
@@ -62,7 +76,10 @@ def add_new_employee():
 	except Exception as e:
 		return 'Failed to add employee. Error: {}'.format(e)
 
+
 '''
+This route will delete an employee using url argument.
+Note: Won't work if emp id exists in foreign tables
 Usage Example:
 http://localhost:4999/remove-employee?emp_id=16
 '''
@@ -78,24 +95,36 @@ def remove_employee():
 	except Exception as e:
 		return 'Failed to remove employee. Error: {}'.format(e)
 
+
 '''
+This route queries the employee table and returns a html table
+?limit parameter can be used to return less rows 
 Usage Example:
 http://localhost:4999/show-employees-pandas
 '''
 @app.route('/show-employees-pandas')
 def show_employee_p():
 	try:
+		limit = request.args.get('limit')
 
-		data = pandas.read_sql(db.session.query(Employee).\
+		if not limit:
+			limit = 9999999999999
+
+		print(limit)
+
+		data = pandas.read_sql(db.session.query(Employee).limit(limit).\
 			with_entities(Employee.emp_id, Employee.emp_name, Employee.emp_age)\
-			.statement, con = db.session.bind)
-		return data.to_html()
+			.statement, con = db.session.bind)		
+
+		return data.to_html(index = False)
 
 	except Exception as e:
 
 		return 'Failed to return data: error{}'.format(e)
 
+
 '''
+This route queries the employee table and returns a query object string
 Usage Example:
 http://localhost:4999/show-employees-query
 '''
@@ -104,13 +133,16 @@ def show_employee_q():
 	try:
 
 		query = Employee.query.all()
-
-		return query
+		print(type(query))
+		return str(query)
 	except Exception as e:
 
 		return 'Failed to return data: error{}'.format(e)
 
 
+'''
+Execute app on port 4999 in debug mode
+'''
 if __name__ == "__main__":
 	app.run(port = 4999,
 		debug = True)
