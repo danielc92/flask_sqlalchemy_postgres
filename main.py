@@ -2,34 +2,6 @@ import pandas
 from datetime import datetime as dt
 from flask_sqlalchemy import SQLAlchemy
 from flask import Flask, render_template, redirect, url_for, request, session, jsonify
-from flask_jsonpify import jsonpify
-'''
-Documentation for sql-flaskalchemy: 
-http://flask-sqlalchemy.pocoo.org/2.3/queries/#querying-records
-'''
-
-'''
-Queries to set up database
-
-CREATE TABLE employees
-(
-    emp_id SERIAL PRIMARY KEY,
-    emp_name VARCHAR(255),
-    emp_age INTEGER
-)
-
-CREATE TABLE complaints
-(
-    complaint_id SERIAL PRIMARY KEY,
-    complaint_content VARCHAR(255),
-    complaint_emp_id INTEGER REFERENCES employees (emp_id)
-)
-'''
-
-
-'''
-Imports
-'''
 
 '''
 Initiate flask app 
